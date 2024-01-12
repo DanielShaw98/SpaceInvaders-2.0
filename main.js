@@ -1,5 +1,6 @@
 const KEY_RIGHT = 39;
 const KEY_LEFT = 37;
+const KEY_SPACE = 32;
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -9,6 +10,8 @@ const STATE = {
   y_pos : 0,
   move_right : false,
   move_left : false,
+  shoot : false,
+  lasers : [],
   spaceship_width : 50
 };
 
@@ -21,6 +24,18 @@ function setPosition($element, x, y) {
 function setSize($element, width) {
   $element.style.width = `${width}px`;
   $element.style.height = "auto";
+};
+
+function bound(x) {
+  if (x >= GAME_WIDTH - STATE.spaceship_width) {
+    STATE.x_pos = GAME_WIDTH - STATE.spaceship_width;
+    return STATE.x_pos;
+  } if (x <= 0) {
+    STATE.x_pos = 0;
+    return STATE.x_pos;
+  } else {
+    return x;
+  };
 };
 
 // Player
@@ -41,9 +56,32 @@ function updatePlayer() {
     STATE.x_pos -= 3;
   } if (STATE.move_right) {
     STATE.x_pos += 3;
+  } if (STATE.shoot) {
+    createLaser($container, STATE.x_pos - STATE.spaceship_width / 2, STATE.y_pos);
   };
   const $player = document.querySelector(".player");
-  setPosition($player, STATE.x_pos, STATE.y_pos);
+  setPosition($player, bound(STATE.x_pos), STATE.y_pos);
+};
+
+// Player Laser
+
+function createLaser($container, x, y) {
+  const $laser = document.createElement("img");
+  $laser.src = "img/Laser.png";
+  $laser.className = "laser";
+  $container.appendChild($laser);
+  const laser = {x, y, $laser};
+  STATE.lasers.push(laser);
+  setPosition($laser, x, y);
+};
+
+function updateLaser($container) {
+  const lasers = STATE.lasers;
+  for (let i = 0; i < lasers.length; i++) {
+    const laser = lasers[i];
+    laser.y -= 2;
+    setPosition(laser.$laser, laser.x, laser.y);
+  };
 };
 
 // Key Presses
@@ -53,6 +91,8 @@ function keyPress(event) {
     STATE.move_right = true;
   } else if (event.keyCode === KEY_LEFT) {
     STATE.move_left = true;
+  } else if (event.keyCode === KEY_SPACE) {
+    STATE.shoot = true;
   }
 };
 
@@ -61,6 +101,8 @@ function keyRelease(event) {
     STATE.move_right = false;
   } else if (event.keyCode === KEY_LEFT) {
     STATE.move_left = false;
+  } else if (event.keyCode === KEY_SPACE) {
+    STATE.shoot = false;
   }
 };
 
@@ -68,6 +110,7 @@ function keyRelease(event) {
 
 function update() {
   updatePlayer();
+  updateLaser($container);
 
   window.requestAnimationFrame(update);
 };
