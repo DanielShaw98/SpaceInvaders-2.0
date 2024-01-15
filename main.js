@@ -116,7 +116,7 @@ function createEnemy($container, x, y) {
 
 function updateEnemies() {
   const dx = Math.sin(Date.now() / 1000) * 40;
-  const dy = Math.sin(Date.now() / 1000) * 30;
+  const dy = Math.cos(Date.now() / 1000) * 30;
   const enemies = STATE.enemies;
   for (let i = 0; i < enemies.length; i++) {
     const enemy = enemies[i];
