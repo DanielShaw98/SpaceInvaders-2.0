@@ -58,3 +58,7 @@ footer {
   height: 25px;
   z-index: -1;
 }
+
+.main .enemy {
+  position: absolute;
+}

@@ -6,14 +6,17 @@ const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
 
 const STATE = {
-  x_pos : 0,
-  y_pos : 0,
-  move_right : false,
-  move_left : false,
-  shoot : false,
-  lasers : [],
-  spaceship_width : 50,
-  cooldown : 0
+  x_pos: 0,
+  y_pos: 0,
+  move_right: false,
+  move_left: false,
+  shoot: false,
+  lasers: [],
+  enemies: [],
+  spaceship_width: 50,
+  enemy_width: 50,
+  cooldown: 0,
+  number_of_enemies: 16
 }
 
 // General Purpose Functions
@@ -98,6 +101,39 @@ function updateLaser($container) {
   }
 }
 
+// Enemies
+
+function createEnemy($container, x, y) {
+  const $enemy = document.createElement("img");
+  $enemy.src = "img/Spaceinvader.svg";
+  $enemy.className = "enemy";
+  $container.appendChild($enemy);
+  const enemy = {x, y, $enemy};
+  STATE.enemies.push(enemy);
+  setSize($enemy, STATE.enemy_width);
+  setPosition($enemy, x, y);
+}
+
+function updateEnemies() {
+  const dx = Math.sin(Date.now() / 1000) * 40;
+  const dy = Math.sin(Date.now() / 1000) * 30;
+  const enemies = STATE.enemies;
+  for (let i = 0; i < enemies.length; i++) {
+    const enemy = enemies[i];
+    let a = enemy.x + dx;
+    let b = enemy.y + dy;
+    setPosition(enemy.$enemy, a, b);
+  }
+}
+
+function createEnemies($container) {
+  for (let i = 0; i <= STATE.number_of_enemies / 2; i++) {
+    createEnemy($container, i * 80, 100);
+  } for (let i = 0; i <= STATE.number_of_enemies / 2; i++) {
+    createEnemy($container, i * 80, 180);
+  }
+}
+
 // Key Presses
 
 function keyPress(event) {
@@ -125,6 +161,7 @@ function keyRelease(event) {
 function update() {
   updatePlayer();
   updateLaser($container);
+  updateEnemies();
 
   window.requestAnimationFrame(update);
 }
@@ -133,6 +170,7 @@ function update() {
 
 const $container = document.querySelector(".main");
 createPlayer($container);
+createEnemies($container);
 
 // Event Listeners
 
