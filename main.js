@@ -14,18 +14,18 @@ const STATE = {
   lasers : [],
   spaceship_width : 50,
   cooldown : 0
-};
+}
 
 // General Purpose Functions
 
 function setPosition($element, x, y) {
   $element.style.transform = `translate(${x}px, ${y}px)`;
-};
+}
 
 function setSize($element, width) {
   $element.style.width = `${width}px`;
   $element.style.height = "auto";
-};
+}
 
 function bound(x) {
   if (x >= GAME_WIDTH - STATE.spaceship_width) {
@@ -36,8 +36,8 @@ function bound(x) {
     return STATE.x_pos;
   } else {
     return x;
-  };
-};
+  }
+}
 
 function deleteLaser(lasers, laser, $laser) {
   const index = lasers.indexOf(laser);
@@ -56,7 +56,7 @@ function createPlayer($container) {
   $container.appendChild($player);
   setPosition($player, STATE.x_pos, STATE.y_pos);
   setSize($player, STATE.spaceship_width);
-};
+}
 
 function updatePlayer() {
   if (STATE.move_left) {
@@ -66,13 +66,13 @@ function updatePlayer() {
   } if (STATE.shoot && STATE.cooldown == 0) {
     createLaser($container, STATE.x_pos - STATE.spaceship_width / 2, STATE.y_pos);
     STATE.cooldown = 30;
-  };
+  }
   const $player = document.querySelector(".player");
   setPosition($player, bound(STATE.x_pos), STATE.y_pos);
   if (STATE.cooldown > 0) {
     STATE.cooldown -= 0.5;
-  };
-};
+  }
+}
 
 // Player Laser
 
@@ -84,7 +84,7 @@ function createLaser($container, x, y) {
   const laser = {x, y, $laser};
   STATE.lasers.push(laser);
   setPosition($laser, x, y);
-};
+}
 
 function updateLaser($container) {
   const lasers = STATE.lasers;
@@ -108,7 +108,7 @@ function keyPress(event) {
   } else if (event.keyCode === KEY_SPACE) {
     STATE.shoot = true;
   }
-};
+}
 
 function keyRelease(event) {
   if (event.keyCode === KEY_RIGHT) {
@@ -118,7 +118,7 @@ function keyRelease(event) {
   } else if (event.keyCode === KEY_SPACE) {
     STATE.shoot = false;
   }
-};
+}
 
 // Main Update Function
 
@@ -127,7 +127,7 @@ function update() {
   updateLaser($container);
 
   window.requestAnimationFrame(update);
-};
+}
 
 // Init. Game
 
