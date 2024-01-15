@@ -12,7 +12,8 @@ const STATE = {
   move_left : false,
   shoot : false,
   lasers : [],
-  spaceship_width : 50
+  spaceship_width : 50,
+  cooldown : 0
 };
 
 // General Purpose Functions
@@ -38,6 +39,12 @@ function bound(x) {
   };
 };
 
+function deleteLaser(lasers, laser, $laser) {
+  const index = lasers.indexOf(laser);
+  lasers.splice(index, 1);
+  $container.removeChild($laser);
+}
+
 // Player
 
 function createPlayer($container) {
@@ -56,11 +63,15 @@ function updatePlayer() {
     STATE.x_pos -= 3;
   } if (STATE.move_right) {
     STATE.x_pos += 3;
-  } if (STATE.shoot) {
+  } if (STATE.shoot && STATE.cooldown == 0) {
     createLaser($container, STATE.x_pos - STATE.spaceship_width / 2, STATE.y_pos);
+    STATE.cooldown = 30;
   };
   const $player = document.querySelector(".player");
   setPosition($player, bound(STATE.x_pos), STATE.y_pos);
+  if (STATE.cooldown > 0) {
+    STATE.cooldown -= 0.5;
+  };
 };
 
 // Player Laser
@@ -80,9 +91,12 @@ function updateLaser($container) {
   for (let i = 0; i < lasers.length; i++) {
     const laser = lasers[i];
     laser.y -= 2;
+    if (laser.y < 0) {
+      deleteLaser(lasers, laser, laser.$laser);
+    }
     setPosition(laser.$laser, laser.x, laser.y);
-  };
-};
+  }
+}
 
 // Key Presses
 
