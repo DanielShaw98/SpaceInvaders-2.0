@@ -13,10 +13,13 @@ const STATE = {
   shoot: false,
   lasers: [],
   enemies: [],
+  enemyLasers: [],
   spaceship_width: 50,
   enemy_width: 50,
   cooldown: 0,
-  number_of_enemies: 16
+  number_of_enemies: 16,
+  enemy_cooldown: 0,
+  gameOver: false,
 }
 
 // General Purpose Functions
@@ -48,6 +51,13 @@ function deleteLaser(lasers, laser, $laser) {
   $container.removeChild($laser);
 }
 
+function collideRect(rect1, rect2) {
+  return! (rect2.left > rect1.right ||
+    rect2.right < rect1.left ||
+    rect2.top > rect1.bottom ||
+    rect2.bottom < rect1.top);
+}
+
 // Player
 
 function createPlayer($container) {
@@ -71,7 +81,7 @@ function updatePlayer() {
     STATE.cooldown = 30;
   }
   const $player = document.querySelector(".player");
-  setPosition($player, bound(STATE.x_pos), STATE.y_pos);
+  setPosition($player, bound(STATE.x_pos), STATE.y_pos - 15);
   if (STATE.cooldown > 0) {
     STATE.cooldown -= 0.5;
   }
@@ -98,6 +108,18 @@ function updateLaser($container) {
       deleteLaser(lasers, laser, laser.$laser);
     }
     setPosition(laser.$laser, laser.x, laser.y);
+    const laser_rectangle = laser.$laser.getBoundingClientRect();
+    const enemies = STATE.enemies;
+    for (let j = 0; j < enemies.length; j++) {
+      const enemy = enemies[j];
+      const enemy_rectangle = enemy.$enemy.getBoundingClientRect();
+      if (collideRect(enemy_rectangle, laser_rectangle)) {
+        deleteLaser(lasers, laser, laser.$laser);
+        const index = enemies.indexOf(enemy);
+        enemies.splice(index, 1);
+        $container.removeChild(enemy.$enemy);
+      }
+    }
   }
 }
 
@@ -108,13 +130,14 @@ function createEnemy($container, x, y) {
   $enemy.src = "img/Spaceinvader.svg";
   $enemy.className = "enemy";
   $container.appendChild($enemy);
-  const enemy = {x, y, $enemy};
+  const enemy_cooldown = Math.floor(Math.random() * 100);
+  const enemy = {x, y, $enemy, enemy_cooldown};
   STATE.enemies.push(enemy);
   setSize($enemy, STATE.enemy_width);
   setPosition($enemy, x, y);
 }
 
-function updateEnemies() {
+function updateEnemies($container) {
   const dx = Math.sin(Date.now() / 1000) * 40;
   const dy = Math.cos(Date.now() / 1000) * 30;
   const enemies = STATE.enemies;
@@ -123,6 +146,11 @@ function updateEnemies() {
     let a = enemy.x + dx;
     let b = enemy.y + dy;
     setPosition(enemy.$enemy, a, b);
+    if (enemy.enemy_cooldown == 0) {
+      createEnemyLaser($container, a, b);
+      enemy.enemy_cooldown = Math.floor(Math.random() * 50) + 100;
+    }
+    enemy.enemy_cooldown -= 0.5;
   }
 }
 
@@ -131,6 +159,33 @@ function createEnemies($container) {
     createEnemy($container, i * 80, 100);
   } for (let i = 0; i <= STATE.number_of_enemies / 2; i++) {
     createEnemy($container, i * 80, 180);
+  }
+}
+
+function createEnemyLaser($container, x, y) {
+  const $enemyLaser = document.createElement("img");
+  $enemyLaser.src = "img/Enemylaser.png";
+  $enemyLaser.className = "enemyLaser";
+  $container.appendChild($enemyLaser);
+  const enemyLaser = {x, y, $enemyLaser};
+  STATE.enemyLasers.push(enemyLaser);
+  setPosition($enemyLaser, x, y);
+}
+
+function updateEnemyLaser() {
+  const enemyLasers = STATE.enemyLasers;
+  for (let i = 0; i < enemyLasers.length; i++) {
+    const enemyLaser = enemyLasers[i];
+    enemyLaser.y += 2;
+    if (enemyLaser.y > GAME_HEIGHT - 30) {
+      deleteLaser(enemyLasers, enemyLaser, enemyLaser.$enemyLaser);
+    }
+    const enemyLaser_rectangle = enemyLaser.$enemyLaser.getBoundingClientRect();
+    const spaceship_rectangle = document.querySelector(".player").getBoundingClientRect();
+    if (collideRect(spaceship_rectangle, enemyLaser_rectangle)) {
+      STATE.gameOver = true;
+    }
+    setPosition(enemyLaser.$enemyLaser, enemyLaser.x + STATE.enemy_width / 2, enemyLaser.y + 15);
   }
 }
 
@@ -161,9 +216,16 @@ function keyRelease(event) {
 function update() {
   updatePlayer();
   updateLaser($container);
-  updateEnemies();
+  updateEnemies($container);
+  updateEnemyLaser();
 
   window.requestAnimationFrame(update);
+
+  if (STATE.gameOver) {
+    document.querySelector(".lose").style.display = "block";
+  } if (STATE.enemies.length == 0) {
+    document.querySelector(".win").style.display = "block";
+  }
 }
 
 // Init. Game
